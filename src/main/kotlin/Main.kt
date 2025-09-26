@@ -1,5 +1,7 @@
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.security.MessageDigest
+import java.util.zip.Deflater
 import java.util.zip.Inflater
 import kotlin.system.exitProcess
 
@@ -21,19 +23,61 @@ fun main(args: Array<String>) {
 
             println("Initialized git directory")
         }
+
         "cat-file" -> {
             if (args[1] == "-p") {
-                val inputStream = File(".git/objects/${args[2].subSequence(0, 2)}/${args[2].subSequence(2, 40)}").inputStream()
+                val inputStream =
+                    File(".git/objects/${args[2].subSequence(0, 2)}/${args[2].subSequence(2, 40)}").inputStream()
                 val blob = inputStream.readAllBytes().zlibDecompress()
                 print(blob.split('\u0000')[1])
             }
         }
+
+        "hash-object" -> {
+            var writeFile = false
+            val path = if (args[1] == "-w") {
+                writeFile = true
+                args[2]
+            } else {
+                args[1]
+            }
+            val byteArrayOutputStream = ByteArrayOutputStream()
+            File(path).inputStream().use { fileInputStream ->
+                val fileContent = fileInputStream.readAllBytes()
+                val hexChars = "0123456789ABCDEF"
+                val bytes = MessageDigest
+                    .getInstance("SHA-1")
+                    .digest(fileContent)
+                val result = StringBuilder(bytes.size * 2)
+
+                bytes.forEach {
+                    val i = it.toInt()
+                    result.append(hexChars[i shr 4 and 0x0f])
+                    result.append(hexChars[i and 0x0f])
+                }
+                println(result)
+                val blob = "blob ${fileContent.size}\u0000".toByteArray(Charsets.UTF_8)
+                val uncompressedBlob = blob.plus(fileContent)
+                File("./git/objects/${result.subSequence(0, 2)}/${result.subSequence(2, 40)}").writeBytes(uncompressedBlob)
+            }
+        }
+
         else -> {
             println("Unknown command: ${args[0]}")
             exitProcess(1)
         }
     }
-         
+
+}
+
+fun ByteArray.zlibCompress(): ByteArray {
+    val output = ByteArray(this@zlibCompress.size * 4)
+    val compressor = Deflater().apply {
+        setInput(this@zlibCompress)
+        finish()
+    }
+    val compressedDataLength: Int = compressor.deflate(output)
+    return output.copyOfRange(0, compressedDataLength)
 }
 
 
