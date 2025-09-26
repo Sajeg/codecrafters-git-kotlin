@@ -47,17 +47,17 @@ fun main(args: Array<String>) {
                 val bytes = MessageDigest
                     .getInstance("SHA-1")
                     .digest(fileContent)
-                val result = StringBuilder(bytes.size * 2)
+                val hash = StringBuilder(bytes.size * 2)
 
                 bytes.forEach {
                     val i = it.toInt()
-                    result.append(hexChars[i shr 4 and 0x0f])
-                    result.append(hexChars[i and 0x0f])
+                    hash.append(hexChars[i shr 4 and 0x0f])
+                    hash.append(hexChars[i and 0x0f])
                 }
-                println(result)
+                println(hash)
                 val blob = "blob ${fileContent.size}\u0000".toByteArray(Charsets.UTF_8)
                 val compressedBlob = blob.plus(fileContent).zlibCompress()
-                File("./git/objects/${result.subSequence(0, 2)}/${result.subSequence(2, 40)}").apply { 
+                File("./git/objects/${hash.subSequence(0, 2)}/${hash.subSequence(2, 40)}").apply { 
                     mkdir()
                     writeBytes(compressedBlob)
                 }
