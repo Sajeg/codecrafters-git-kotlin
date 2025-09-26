@@ -12,14 +12,14 @@ fun main(args: Array<String>) {
 
     if (args[0] == "init") {
         // Uncomment this block to pass the first stage
-        //
-        // val gitDir = File(".git")
-        // gitDir.mkdir()
-        // File(gitDir, "objects").mkdir()
-        // File(gitDir, "refs").mkdir()
-        // File(gitDir, "HEAD").writeText("ref: refs/heads/master\n")
-        //
-        // println("Initialized git directory")
+
+         val gitDir = File(".git")
+         gitDir.mkdir()
+         File(gitDir, "objects").mkdir()
+         File(gitDir, "refs").mkdir()
+         File(gitDir, "HEAD").writeText("ref: refs/heads/master\n")
+
+         println("Initialized git directory")
     } else {
         println("Unknown command: ${args[0]}")
         exitProcess(1)
