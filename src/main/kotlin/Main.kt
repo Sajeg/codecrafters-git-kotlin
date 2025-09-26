@@ -25,7 +25,7 @@ fun main(args: Array<String>) {
             if (args[1] == "-p") {
                 val inputStream = File(".git/objects/${args[2].subSequence(0, 2)}/${args[2].subSequence(2, 40)}").inputStream()
                 val blob = inputStream.readAllBytes().zlibDecompress()
-                println(blob.split('\u0000')[1])
+                print(blob.split('\u0000')[1])
             }
         }
         else -> {
