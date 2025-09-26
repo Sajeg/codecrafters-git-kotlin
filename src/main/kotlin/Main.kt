@@ -41,7 +41,6 @@ fun main(args: Array<String>) {
             } else {
                 args[1]
             }
-            val byteArrayOutputStream = ByteArrayOutputStream()
             File(path).inputStream().use { fileInputStream ->
                 val fileContent = fileInputStream.readAllBytes()
                 val hexChars = "0123456789ABCDEF"
@@ -57,8 +56,11 @@ fun main(args: Array<String>) {
                 }
                 println(result)
                 val blob = "blob ${fileContent.size}\u0000".toByteArray(Charsets.UTF_8)
-                val uncompressedBlob = blob.plus(fileContent)
-                File("./git/objects/${result.subSequence(0, 2)}/${result.subSequence(2, 40)}").writeBytes(uncompressedBlob)
+                val compressedBlob = blob.plus(fileContent).zlibCompress()
+                File("./git/objects/${result.subSequence(0, 2)}/${result.subSequence(2, 40)}").apply { 
+                    mkdir()
+                    writeBytes(compressedBlob)
+                }
             }
         }
 
