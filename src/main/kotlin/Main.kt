@@ -43,7 +43,7 @@ fun main(args: Array<String>) {
             }
             File(path).inputStream().use { fileInputStream ->
                 val fileContent = fileInputStream.readAllBytes()
-                val hexChars = "0123456789ABCDEF"
+                val hexChars = "0123456789abcdef"
                 val bytes = MessageDigest
                     .getInstance("SHA-1")
                     .digest(fileContent)
@@ -55,11 +55,15 @@ fun main(args: Array<String>) {
                     hash.append(hexChars[i and 0x0f])
                 }
                 println(hash)
+                if (!writeFile) {
+                    return
+                }
                 val blob = "blob ${fileContent.size}\u0000".toByteArray(Charsets.UTF_8)
                 val compressedBlob = blob.plus(fileContent).zlibCompress()
-                File("./git/objects/${hash.subSequence(0, 2)}/").mkdirs()
                 File("./git/objects/${hash.subSequence(0, 2)}/${hash.subSequence(2, 40)}").apply { 
                     createNewFile()
+                }
+                File("./git/objects/${hash.subSequence(0, 2)}/${hash.subSequence(2, 40)}").apply {
                     writeBytes(compressedBlob)
                 }
             }
