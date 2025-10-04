@@ -60,7 +60,7 @@ fun main(args: Array<String>) {
                     return
                 }
                 
-                val compressedBlob = fileContent.zlibCompress()
+                val compressedBlob = blob.plus(fileContent).zlibCompress()
                 File(".git/objects/${hash.subSequence(0, 2)}/").mkdirs()
                 File(".git/objects/${hash.subSequence(0, 2)}/${hash.subSequence(2, 40)}").apply {
                     createNewFile()
