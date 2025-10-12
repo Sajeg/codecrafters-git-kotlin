@@ -127,7 +127,7 @@ fun createTree(path: File): String {
     treeObjects.forEach { tree ->
         fileContent += "${tree.permission} ${tree.name}\u0000${tree.hash.toByteArray().toHexString()}"
     }
-    
+    println("Writing ${fileContent}")
     val tree = "tree ${fileContent.length}\u0000".toByteArray(Charsets.UTF_8)
     val bytes = MessageDigest
         .getInstance("SHA-1")
