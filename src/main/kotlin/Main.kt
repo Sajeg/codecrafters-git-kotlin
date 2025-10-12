@@ -95,22 +95,20 @@ fun main(args: Array<String>) {
                 treeObjects.add(TreeObjects(splitString[0], splitString[1], fileContent.copyOfRange(zeroPosition, zeroPosition + 20).toHexString()))
                 startPosition = zeroPosition + 21
             }
-            val directories = treeObjects.filter { it.permission == "40000" }.sortedBy { it.name.trim().lowercase() }
-            val files = treeObjects.filter { it.permission != "40000" }.sortedBy { it.name.trim().lowercase() }
+//            val directories = treeObjects.filter { it.permission == "40000" }.sortedBy { it.name.trim().lowercase() }
+//            val files = treeObjects.filter { it.permission != "40000" }.sortedBy { it.name.trim().lowercase() }
+            
             if (nameOnly) {
-                directories.forEach { 
-                    println(it.name)
-                }
-                files.forEach { 
+                treeObjects.sortedBy { it.name.trim().lowercase() }.forEach {  
                     println(it.name)
                 }
             } else {
-                directories.forEach {
-                    println("0${it.permission} tree ${it.hash}\t${it.name}")
-                }
-                files.forEach {
-                    println("${it.permission} blob ${it.hash}\t${it.name}")
-                } 
+//                directories.forEach {
+//                    println("0${it.permission} tree ${it.hash}\t${it.name}")
+//                }
+//                files.forEach {
+//                    println("${it.permission} blob ${it.hash}\t${it.name}")
+//                } 
             }
         }
 	}
