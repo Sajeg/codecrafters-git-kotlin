@@ -97,7 +97,7 @@ fun main(args: Array<String>) {
         }
         
         "write-tree" -> {
-            createTree(File(""))
+            println(createTree(File("")))
         }
 
         else -> {
