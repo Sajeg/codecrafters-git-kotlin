@@ -13,7 +13,8 @@ class TreeObjects(
     val hash: String
 )
 
-val hexChars = "0123456789abcdef"
+const val hexChars = "0123456789abcdef"
+const val folderPrefix = ".git"
 
 @OptIn(ExperimentalStdlibApi::class)
 fun main(args: Array<String>) {
@@ -26,7 +27,7 @@ fun main(args: Array<String>) {
     }
     when (args[0]) {
         "init" -> {
-            val gitDir = File(".git")
+            val gitDir = File(folderPrefix)
             gitDir.mkdir()
             File(gitDir, "objects").mkdir()
             File(gitDir, "refs").mkdir()
@@ -38,7 +39,7 @@ fun main(args: Array<String>) {
         "cat-file" -> {
             if (args[1] == "-p") {
                 val inputStream =
-                    File(".git/objects/${args[2].subSequence(0, 2)}/${args[2].subSequence(2, 40)}").inputStream()
+                    File("${folderPrefix}/objects/${args[2].subSequence(0, 2)}/${args[2].subSequence(2, 40)}").inputStream()
                 val blob = inputStream.readAllBytes().zlibDecompress().decodeToString()
                 print(blob.split('\u0000')[1])
             }
@@ -64,7 +65,7 @@ fun main(args: Array<String>) {
                 args[1]
             }
 
-            File(".git/objects/${path.subSequence(0, 2)}/${path.subSequence(2, 40)}").inputStream()
+            File("${folderPrefix}/objects/${path.subSequence(0, 2)}/${path.subSequence(2, 40)}").inputStream()
                 .use { fileInputStream ->
                     val fileContent = fileInputStream.readAllBytes().zlibDecompress()
                     val treeObjects = mutableListOf<TreeObjects>()
@@ -112,7 +113,10 @@ fun main(args: Array<String>) {
 fun createTree(path: File): String {
     val files = path.listFiles()
     val treeObjects = mutableListOf<TreeObjects>()
-    files?.forEach { file ->
+    files?.forEach loop@ { file ->
+        if (file.name == folderPrefix) {
+            return@loop
+        }
         if (file.isDirectory) {
             treeObjects.add(TreeObjects("40000", file.name, createTree(file)))
         } else if (file.canExecute()) {
@@ -127,7 +131,7 @@ fun createTree(path: File): String {
     treeObjects.forEach { tree ->
         fileContent += "${tree.permission} ${tree.name}\u0000${tree.hash.toByteArray().toHexString()}"
     }
-    println("Writing ${fileContent}")
+//    println("Writing ${fileContent}")
     val tree = "tree ${fileContent.length}\u0000".toByteArray(Charsets.UTF_8)
     val bytes = MessageDigest
         .getInstance("SHA-1")
@@ -141,8 +145,8 @@ fun createTree(path: File): String {
     }
 
     val compressedTree = tree.plus(fileContent.toByteArray()).zlibCompress()
-    File(".git/objects/${hash.subSequence(0, 2)}/").mkdirs()
-    File(".git/objects/${hash.subSequence(0, 2)}/${hash.subSequence(2, 40)}").apply {
+    File("${folderPrefix}/objects/${hash.subSequence(0, 2)}/").mkdirs()
+    File("${folderPrefix}/objects/${hash.subSequence(0, 2)}/${hash.subSequence(2, 40)}").apply {
         createNewFile()
         writeBytes(compressedTree)
     }
@@ -168,8 +172,8 @@ fun createBlob(writeFile: Boolean, path: String): String {
         }
 
         val compressedBlob = blob.plus(fileContent).zlibCompress()
-        File(".git/objects/${hash.subSequence(0, 2)}/").mkdirs()
-        File(".git/objects/${hash.subSequence(0, 2)}/${hash.subSequence(2, 40)}").apply {
+        File("${folderPrefix}/objects/${hash.subSequence(0, 2)}/").mkdirs()
+        File("${folderPrefix}/objects/${hash.subSequence(0, 2)}/${hash.subSequence(2, 40)}").apply {
             createNewFile()
             writeBytes(compressedBlob)
         }
