@@ -103,12 +103,9 @@ fun main(args: Array<String>) {
                     println(it.name)
                 }
             } else {
-//                directories.forEach {
-//                    println("0${it.permission} tree ${it.hash}\t${it.name}")
-//                }
-//                files.forEach {
-//                    println("${it.permission} blob ${it.hash}\t${it.name}")
-//                } 
+                treeObjects.sortedBy { it.name.trim().lowercase() }.forEach {
+                    println("${if (it.permission == "40000") "040000" else it.permission} ${if (it.permission == "40000") "tree" else "blob"} ${it.hash}\t${it.name}")
+                }
             }
         }
 	}
