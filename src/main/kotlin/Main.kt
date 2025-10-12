@@ -127,10 +127,11 @@ fun createTree(path: File): String {
             treeObjects.add(TreeObjects("100644", file.name, createBlob(true, file.path))) 
         }
     }
-    var fileContent = ""
+    val treeContent = mutableListOf<String>()
     treeObjects.forEach { tree ->
-        fileContent += "${tree.permission} ${tree.name}\u0000${tree.hash.toByteArray().toHexString()}"
+        treeContent.add("${tree.permission} ${tree.name}\u0000${tree.hash.toByteArray().toHexString()}")
     }
+    val fileContent = treeContent.joinToString("")
 //    println("Writing ${fileContent}")
     val tree = "tree ${fileContent.length}\u0000".toByteArray(Charsets.UTF_8)
     val bytes = MessageDigest
