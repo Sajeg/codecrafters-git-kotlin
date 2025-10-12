@@ -5,6 +5,13 @@ import java.util.zip.Deflater
 import java.util.zip.Inflater
 import kotlin.system.exitProcess
 
+class TreeObjects(
+    val permission: String,
+    val name: String,
+    val hash: String
+)
+
+@OptIn(ExperimentalStdlibApi::class)
 fun main(args: Array<String>) {
     // You can use print statements as follows for debugging, they'll be visible when running tests.
     System.err.println("Logs from your program will appear here!")
@@ -28,7 +35,7 @@ fun main(args: Array<String>) {
             if (args[1] == "-p") {
                 val inputStream =
                     File(".git/objects/${args[2].subSequence(0, 2)}/${args[2].subSequence(2, 40)}").inputStream()
-                val blob = inputStream.readAllBytes().zlibDecompress()
+                val blob = inputStream.readAllBytes().zlibDecompress().decodeToString()
                 print(blob.split('\u0000')[1])
             }
         }
@@ -69,6 +76,45 @@ fun main(args: Array<String>) {
             }
         }
 
+	"ls-tree" -> {
+		var nameOnly = false
+        val path = if (args[1] == "--name-only") {
+            nameOnly = true
+            args[2]
+        } else {
+            args[1]
+        }
+
+        File(".git/objects/${path.subSequence(0, 2)}/${path.subSequence(2, 40)}").inputStream().use { fileInputStream ->
+            val fileContent = fileInputStream.readAllBytes().zlibDecompress()
+            val treeObjects = mutableListOf<TreeObjects>()
+            var startPosition = fileContent.indexOf(0) + 1
+            while (startPosition < fileContent.size) {
+                val zeroPosition = fileContent.copyOfRange(startPosition, fileContent.size).indexOf(0.toByte()) + startPosition
+                val splitString = fileContent.copyOfRange(startPosition, zeroPosition).decodeToString().trim().split(' ')
+                treeObjects.add(TreeObjects(splitString[0], splitString[1], fileContent.copyOfRange(zeroPosition, zeroPosition + 20).toHexString()))
+                startPosition = zeroPosition + 21
+            }
+            val directories = treeObjects.filter { it.permission == "40000" }.sortedBy { it.name.trim().lowercase() }
+            val files = treeObjects.filter { it.permission != "40000" }.sortedBy { it.name.trim().lowercase() }
+            if (nameOnly) {
+                directories.forEach { 
+                    println(it.name)
+                }
+                files.forEach { 
+                    println(it.name)
+                }
+            } else {
+                directories.forEach {
+                    println("0${it.permission} tree ${it.hash}\t${it.name}")
+                }
+                files.forEach {
+                    println("${it.permission} blob ${it.hash}\t${it.name}")
+                } 
+            }
+        }
+	}
+
         else -> {
             println("Unknown command: ${args[0]}")
             exitProcess(1)
@@ -88,7 +134,7 @@ fun ByteArray.zlibCompress(): ByteArray {
 }
 
 
-fun ByteArray.zlibDecompress(): String {
+fun ByteArray.zlibDecompress(): ByteArray {
     val inflater = Inflater()
     val outputStream = ByteArrayOutputStream()
 
@@ -104,6 +150,6 @@ fun ByteArray.zlibDecompress(): String {
         }
 
         inflater.end()
-        outputStream.toString("UTF-8")
+        outputStream.toByteArray()
     }
 }
