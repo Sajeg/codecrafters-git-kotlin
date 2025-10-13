@@ -116,7 +116,6 @@ fun createTree(path: File): String {
     val files = path.listFiles()
     val treeObjects = mutableListOf<TreeObjects>()
     files?.forEach loop@ { file ->
-        println("Found file with name: ${file.name}")
         if (file.name == folderPrefix) {
             return@loop
         }
@@ -135,7 +134,6 @@ fun createTree(path: File): String {
         treeContent.add("${tree.permission} ${tree.name}\u0000${tree.hash.toByteArray().toHexString()}")
     }
     val fileContent = treeContent.joinToString("")
-//    println("Writing ${fileContent}")
     val tree = "tree ${fileContent.length}\u0000".toByteArray(Charsets.UTF_8)
     val bytes = MessageDigest
         .getInstance("SHA-1")
