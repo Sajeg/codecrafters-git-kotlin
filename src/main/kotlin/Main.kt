@@ -2,6 +2,9 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.file.Paths
 import java.security.MessageDigest
+import java.time.Instant
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.zip.Deflater
 import java.util.zip.Inflater
 import kotlin.io.path.Path
@@ -16,6 +19,8 @@ class TreeObjects(
 
 const val hexChars = "0123456789abcdef"
 const val folderPrefix = ".git"
+const val authorName = "Sajeg"
+const val authorEmail = "sajeg@example.com"
 
 @OptIn(ExperimentalStdlibApi::class)
 fun main(args: Array<String>) {
@@ -101,6 +106,58 @@ fun main(args: Array<String>) {
         "write-tree" -> {
             val path = Paths.get("").toAbsolutePath().toString()
             println(createTree(File(path)))
+        }
+        
+        "commit-tree" -> {
+            /*
+            commit {size}\0
+            tree {sha}
+            parent {sha}
+            author {author_name} <{author_email}> {author_date_seconds} {author_date_timezone}
+            committer {committer_name} <{committer_email}> {committer_date_seconds} {committer_date_timezone}
+            {commit message}
+             */
+            val tree = args[1].hexToByteArray()
+            val parent = if (args[2] == "-p") {
+                args[3].hexToByteArray()
+            } else null
+            val message = if (parent == null) args[3] else args[5].toByteArray()
+            val now = ZonedDateTime.now()
+            val tz = DateTimeFormatter.ofPattern("Z").format(now)
+            val time = Instant.now().epochSecond
+            val fileContentList = mutableListOf<ByteArray>()
+            fileContentList.add("tree ".toByteArray())
+            fileContentList.add(tree)
+            if (parent != null) {
+                fileContentList.add("parent ".toByteArray())
+                fileContentList.add(parent)
+            }
+            fileContentList.add("author $authorName <$authorEmail> $time $tz committer $authorName <$authorEmail> $time $tz $message".toByteArray())
+            val fileContent = ByteArray(fileContentList.sumOf { it.size })
+            var offset = 0
+            for (part in fileContentList) {
+                System.arraycopy(part, 0, fileContent, offset, part.size)
+                offset += part.size
+            }
+            val header = "commit ${fileContent.size}\u0000".toByteArray(Charsets.UTF_8)
+            val bytes = MessageDigest
+                .getInstance("SHA-1")
+                .digest(header.plus(fileContent))
+            val hash = StringBuilder(bytes.size * 2)
+
+            bytes.forEach {
+                val i = it.toInt()
+                hash.append(hexChars[i shr 4 and 0x0f])
+                hash.append(hexChars[i and 0x0f])
+            }
+
+            val compressedCommit = header.plus(fileContent).zlibCompress()
+            File("${folderPrefix}/objects/${hash.subSequence(0, 2)}/").mkdirs()
+            File("${folderPrefix}/objects/${hash.subSequence(0, 2)}/${hash.subSequence(2, 40)}").apply {
+                createNewFile()
+                writeBytes(compressedCommit)
+            }
+            println(hash.toString())
         }
 
         else -> {
