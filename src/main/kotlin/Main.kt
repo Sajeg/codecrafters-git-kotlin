@@ -129,15 +129,19 @@ fun createTree(path: File): String {
             treeObjects.add(TreeObjects("100644", file.name, createBlob(true, file.path))) 
         }
     }
-    val treeContent = mutableListOf<String>()
+    val fileContentList = mutableListOf<Byte>()
     treeObjects.forEach { tree ->
-        treeContent.add("${tree.permission} ${tree.name}\u0000${tree.hash.hexToByteArray()}")
+        fileContentList.add(tree.permission.toByte())
+        fileContentList.add(" ".toByte())
+        fileContentList.add(tree.name.toByte())
+        fileContentList.add("\u0000".toByte())
+        fileContentList.add(tree.hash.hexToByte())
     }
-    val fileContent = treeContent.joinToString("")
-    val tree = "tree ${fileContent.length}\u0000".toByteArray(Charsets.UTF_8)
+    val fileContent = fileContentList.toByteArray()
+    val tree = "tree ${fileContent.size}\u0000".toByteArray(Charsets.UTF_8)
     val bytes = MessageDigest
         .getInstance("SHA-1")
-        .digest(tree.plus(fileContent.toByteArray()))
+        .digest(tree.plus(fileContent))
     val hash = StringBuilder(bytes.size * 2)
 
     bytes.forEach {
@@ -146,7 +150,7 @@ fun createTree(path: File): String {
         hash.append(hexChars[i and 0x0f])
     }
 
-    val compressedTree = tree.plus(fileContent.toByteArray()).zlibCompress()
+    val compressedTree = tree.plus(fileContent).zlibCompress()
     File("${folderPrefix}/objects/${hash.subSequence(0, 2)}/").mkdirs()
     File("${folderPrefix}/objects/${hash.subSequence(0, 2)}/${hash.subSequence(2, 40)}").apply {
         createNewFile()
