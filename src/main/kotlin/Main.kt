@@ -129,15 +129,20 @@ fun createTree(path: File): String {
             treeObjects.add(TreeObjects("100644", file.name, createBlob(true, file.path))) 
         }
     }
-    val fileContentList = mutableListOf<Byte>()
+    val fileContentList = mutableListOf<ByteArray>()
     treeObjects.forEach { tree ->
-        fileContentList.add(tree.permission.toByte())
-        fileContentList.add(" ".toByte())
-        fileContentList.add(tree.name.toByte())
-        fileContentList.add("\u0000".toByte())
-        fileContentList.add(tree.hash.hexToByte())
+        fileContentList.add(tree.permission.toByteArray())
+        fileContentList.add(" ".toByteArray())
+        fileContentList.add(tree.name.toByteArray())
+        fileContentList.add("\u0000".toByteArray())
+        fileContentList.add(tree.hash.hexToByteArray())
     }
-    val fileContent = fileContentList.toByteArray()
+    val fileContent = ByteArray(fileContentList.sumOf { it.size })
+    var offset = 0
+    for (part in fileContentList) {
+        System.arraycopy(part, 0, fileContent, offset, part.size)
+        offset += part.size
+    }
     val tree = "tree ${fileContent.size}\u0000".toByteArray(Charsets.UTF_8)
     val bytes = MessageDigest
         .getInstance("SHA-1")
