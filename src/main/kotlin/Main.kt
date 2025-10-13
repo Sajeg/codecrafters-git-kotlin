@@ -114,7 +114,7 @@ fun main(args: Array<String>) {
 @OptIn(ExperimentalStdlibApi::class)
 fun createTree(path: File): String {
     val files = path.listFiles()
-    val treeObjects = mutableListOf<TreeObjects>()
+    var treeObjects = mutableListOf<TreeObjects>()
     files?.forEach loop@ { file ->
         if (file.name == folderPrefix) {
             return@loop
@@ -129,6 +129,7 @@ fun createTree(path: File): String {
             treeObjects.add(TreeObjects("100644", file.name, createBlob(true, file.path))) 
         }
     }
+    treeObjects = treeObjects.sortedBy { it.name.trim().lowercase() }.toMutableList()
     val fileContentList = mutableListOf<ByteArray>()
     treeObjects.forEach { tree ->
         fileContentList.add(tree.permission.toByteArray())
