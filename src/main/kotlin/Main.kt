@@ -1,5 +1,6 @@
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.nio.file.Paths
 import java.security.MessageDigest
 import java.util.zip.Deflater
 import java.util.zip.Inflater
@@ -98,7 +99,8 @@ fun main(args: Array<String>) {
         }
         
         "write-tree" -> {
-            println(createTree(File("")))
+            val path = Paths.get("").toAbsolutePath().toString()
+            println(createTree(File(path)))
         }
 
         else -> {
