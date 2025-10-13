@@ -114,6 +114,7 @@ fun createTree(path: File): String {
     val files = path.listFiles()
     val treeObjects = mutableListOf<TreeObjects>()
     files?.forEach loop@ { file ->
+        println("Found file with name: ${file.name}")
         if (file.name == folderPrefix) {
             return@loop
         }
