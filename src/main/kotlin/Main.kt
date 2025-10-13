@@ -131,7 +131,7 @@ fun createTree(path: File): String {
     }
     val treeContent = mutableListOf<String>()
     treeObjects.forEach { tree ->
-        treeContent.add("${tree.permission} ${tree.name}\u0000${tree.hash.toByteArray().toHexString()}")
+        treeContent.add("${tree.permission} ${tree.name}\u0000${tree.hash.hexToByteArray()}")
     }
     val fileContent = treeContent.joinToString("")
     val tree = "tree ${fileContent.length}\u0000".toByteArray(Charsets.UTF_8)
