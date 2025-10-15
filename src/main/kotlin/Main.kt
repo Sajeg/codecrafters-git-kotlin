@@ -133,7 +133,7 @@ fun main(args: Array<String>) {
                 fileContentList.add(parent)
                 fileContentList.add("\n".toByteArray())
             }
-            fileContentList.add("author $authorName <$authorEmail> $time $tz \ncommitter $authorName <$authorEmail> $time $tz \n\n$message".toByteArray())
+            fileContentList.add("author $authorName <$authorEmail> $time $tz \ncommitter $authorName <$authorEmail> $time $tz \n\n$message\n".toByteArray())
             val fileContent = ByteArray(fileContentList.sumOf { it.size })
             var offset = 0
             for (part in fileContentList) {
