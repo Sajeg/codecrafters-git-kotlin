@@ -120,25 +120,28 @@ fun main(args: Array<String>) {
             val parent = if (args[2] == "-p") {
                 args[3].toByteArray()
             } else null
-            val message = if (parent == null) args[3] else args[5].toByteArray()
+            val message = if (parent == null) args[3] else args[5]
             val now = ZonedDateTime.now()
             val tz = DateTimeFormatter.ofPattern("Z").format(now)
             val time = Instant.now().epochSecond
             val fileContentList = mutableListOf<ByteArray>()
             fileContentList.add("tree ".toByteArray())
             fileContentList.add(tree)
+            fileContentList.add("\n".toByteArray())
             if (parent != null) {
                 fileContentList.add("parent ".toByteArray())
                 fileContentList.add(parent)
+                fileContentList.add("\n".toByteArray())
             }
-            fileContentList.add("author $authorName <$authorEmail> $time $tz\n committer $authorName <$authorEmail> $time $tz $message".toByteArray())
+            fileContentList.add("author $authorName <$authorEmail> $time $tz \ncommitter $authorName <$authorEmail> $time $tz \n\n$message".toByteArray())
             val fileContent = ByteArray(fileContentList.sumOf { it.size })
             var offset = 0
             for (part in fileContentList) {
                 System.arraycopy(part, 0, fileContent, offset, part.size)
                 offset += part.size
             }
-            val header = "commit ${fileContent.size}\u0000".toByteArray(Charsets.UTF_8)
+            println(fileContent.decodeToString())
+            val header = "commit ${fileContent.size}\u0000\n".toByteArray(Charsets.UTF_8)
             val bytes = MessageDigest
                 .getInstance("SHA-1")
                 .digest(header.plus(fileContent))
