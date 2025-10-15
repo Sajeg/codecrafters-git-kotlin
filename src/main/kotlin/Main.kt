@@ -140,7 +140,6 @@ fun main(args: Array<String>) {
                 System.arraycopy(part, 0, fileContent, offset, part.size)
                 offset += part.size
             }
-            println(fileContent.decodeToString())
             val header = "commit ${fileContent.size}\u0000\n".toByteArray(Charsets.UTF_8)
             val bytes = MessageDigest
                 .getInstance("SHA-1")
