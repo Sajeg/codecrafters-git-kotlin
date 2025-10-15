@@ -116,9 +116,9 @@ fun main(args: Array<String>) {
             committer {committer_name} <{committer_email}> {committer_date_seconds} {committer_date_timezone}
             {commit message}
              */
-            val tree = args[1].hexToByteArray()
+            val tree = args[1].toByteArray()
             val parent = if (args[2] == "-p") {
-                args[3].hexToByteArray()
+                args[3].toByteArray()
             } else null
             val message = if (parent == null) args[3] else args[5].toByteArray()
             val now = ZonedDateTime.now()
@@ -131,7 +131,7 @@ fun main(args: Array<String>) {
                 fileContentList.add("parent ".toByteArray())
                 fileContentList.add(parent)
             }
-            fileContentList.add("author $authorName <$authorEmail> $time $tz committer $authorName <$authorEmail> $time $tz $message".toByteArray())
+            fileContentList.add("author $authorName <$authorEmail> $time $tz\n committer $authorName <$authorEmail> $time $tz $message".toByteArray())
             val fileContent = ByteArray(fileContentList.sumOf { it.size })
             var offset = 0
             for (part in fileContentList) {
