@@ -140,10 +140,10 @@ fun main(args: Array<String>) {
                 System.arraycopy(part, 0, fileContent, offset, part.size)
                 offset += part.size
             }
-            val header = "commit ${fileContent.size}\u0000\n".toByteArray(Charsets.UTF_8)
+            val header = "commit ${fileContent.size}\u0000".toByteArray(Charsets.UTF_8)
             val bytes = MessageDigest
                 .getInstance("SHA-1")
-                .digest(header.plus(fileContent))
+                .digest(header + fileContent)
             val hash = StringBuilder(bytes.size * 2)
 
             bytes.forEach {
@@ -151,8 +151,7 @@ fun main(args: Array<String>) {
                 hash.append(hexChars[i shr 4 and 0x0f])
                 hash.append(hexChars[i and 0x0f])
             }
-
-            val compressedCommit = header.plus(fileContent).zlibCompress()
+            val compressedCommit = (header + fileContent).zlibCompress()
             File("${folderPrefix}/objects/${hash.subSequence(0, 2)}/").mkdirs()
             File("${folderPrefix}/objects/${hash.subSequence(0, 2)}/${hash.subSequence(2, 40)}").apply {
                 createNewFile()
